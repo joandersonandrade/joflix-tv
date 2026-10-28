@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>JOFLIX · player</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p{position:fixed;inset:0;width:100%;height:100%}</style>
+</head>
+<body>
+<div id="p"></div>
+<script>
+/* Player do YouTube para o JOFLIX: o app abre esta página dentro dele (yt.html?v=VIDEO) para tocar a reserva
+   do canal sem abrir o app do YouTube. Avisa o JOFLIX pelo postMessage: pronto, tocando, parado, erro. */
+(function () {
+  var v = (/[?&]v=([\w-]{11})/.exec(location.search) || [])[1], player = null;
+  function avisar(ev, codigo) { try { parent.postMessage(JSON.stringify({joflix: 'yt', ev: ev, codigo: codigo || 0}), '*'); } catch (e) { } }
+  if (!v) return avisar('erro', 2);
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('p', {width: '100%', height: '100%', videoId: v,
+      playerVars: {autoplay: 1, controls: 0, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, disablekb: 1, fs: 0},
+      events: {
+        onReady: function (e) { avisar('pronto'); try { e.target.unMute(); e.target.setVolume(100); e.target.playVideo(); } catch (x) { } },
+        onStateChange: function (e) { if (e.data === 1) avisar('tocando'); else if (e.data === 0 || e.data === 2) avisar('parado', e.data); },
+        onError: function (e) { avisar('erro', e.data); }
+      }});
+  };
+  window.addEventListener('message', function (m) {
+    var d; try { d = typeof m.data === 'string' ? JSON.parse(m.data) : m.data; } catch (e) { return; }
+    if (!d || d.joflix !== 'yt' || !player) return;
+    try { if (d.cmd === 'parar') player.stopVideo(); else if (d.cmd === 'tocar') player.playVideo(); else if (d.cmd === 'mudo') player.mute(); else if (d.cmd === 'som') player.unMute(); } catch (e) { }
+  });
+  var s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.onerror = function () { avisar('erro', 1); };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
