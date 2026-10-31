@@ -1,1 +1,4 @@
-[]
+[
+  {"nome": "Rádio Brisa Mar 96.5 FM", "url": "https://12.stmip.net:2548/stream", "logo": "https://joandersonandrade.github.io/joflix-tv/radios/brisa-mar-esplanada.png",
+   "cidade": "Esplanada", "uf": "BA", "estilo": "Popular"}
+]
